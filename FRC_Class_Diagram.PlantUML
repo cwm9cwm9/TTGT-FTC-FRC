@@ -1,5 +1,5 @@
 @startuml
-scale .8
+scale max 4000 width
 skinparam useBetaStyle true
 !theme toy
 
