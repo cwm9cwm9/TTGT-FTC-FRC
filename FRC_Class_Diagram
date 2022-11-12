@@ -1,0 +1,805 @@
+@startuml
+skinparam useBetaStyle true
+!theme toy
+
+scale max 8000 width
+
+class Main
+{
+    +main(args)
+}
+note left of Main::"main(args)"
+    <size:60>1
+    Passes the Robot class's new method as a lambda expression
+    to RobotBase.startRobot() (see 2);
+end note
+
+interface AutoClosable
+{
+close() throws Exception
+}
+note left of AutoClosable::"close()"
+   Implemented by classes requring the ability
+   to release resources when instances are
+   discarded.  Supposed to throw an Exception
+   if cleanup fails.
+end note
+
+class NetworkTableInstance
+
+abstract class  RobotBase
+{
+    <b>.java stored inside wpilibj-java-20xx.x.x-sources.jar
+    -{static} long m_threadId
+    -{static} final ReentrantLock m_runMutex
+    -{static} RobotBase m_robotCopy
+    -{static} boolean m_suppressExitWarning
+
+    -{static} setupCameraServerShared()
+    -{static} setupMathShared()
+    # RobotBase()
+    +{static} long getMainThreadId()
+    @override close()
+    +{static} RuntimeType getRuntimeType()
+    +{static} long isSimulation()
+    +{static} long isReal()
+    +{static} boolean isDisabled()
+    +{static} boolean isEnabled()
+    +{static} boolean isAutonomous()
+    +{static} boolean isAutonomousEnabled()
+    +{static} boolean isTest()
+    +{static} <color:#CCCCCC>boolean isOperatorControl() depricated
+    +{static} boolean isTeleop()
+    +{static} <color:#CCCCCC>boolean isOperatorControlEnabled() depricated
+    +{static} boolean isTeleopEnabled()
+    +{static} boolean isNewDataAvailable()
+    +{abstract} void startCompetition()
+    +{abstract} void endCompetition()
+    +{static} boolean getBooleanProperty(String name, boolean defaultValue)
+    -{static} <T extends RobotBase> void runRobot(Supplier<T> robotSupplier)
+}
+
+<style>
+    note {
+        MinimumWidth 350
+    }
+</style>
+
+note right of RobotBase::m_threadId
+    Filled in by constructor
+end note
+note right of RobotBase::"final ReentrantLock m_runMutex"
+    A mutex to prevent mutliple threads from accessing
+    m_robotCopy or m_suppressExitWarning at the same
+    time.
+end note
+note right of RobotBase::"RobotBase m_robotCopy"
+    A refernece to the Robot object passed to
+    startRobot();
+end note
+note right of RobotBase::"boolean m_suppressExitWarning"
+    When the executable exits a warning is printed that
+    the code exited unexpectedly unless this is set to true.
+end note
+
+note right of RobotBase::setupCameraServerShared()
+    Creates an instance of CameraServerShared, with
+    method overrides, which is used to forward reports
+    of camera usage via remote telemetry for FIRST
+    statistical analysis.
+end note
+note right of RobotBase::setupMathShared()
+    Creates an instance of MathShared, with method
+    overrides, which is used to forward reports of
+    alogithm usage via remote telemetry for FIRST
+    statistical analysis.
+end note
+note right of RobotBase::RobotBase()
+    <size:60>2.1
+    Sets m_threadId
+    Sets up camera and math FIRST telemetry reporting
+    Sets up Network Tables 
+    Disables LiveWindow
+    Disables dashboard actuator widgests (a visual cue that the
+       robot will not respond to input from the driver)
+end note
+note right of RobotBase::startCompetition()
+    <size:60>2.2
+    The robots main op selection loop, overriden by library or
+    user
+end note
+note right of RobotBase::"<T extends RobotBase> void runRobot(Supplier<T> robotSupplier)"
+    <size:60>2
+    Prints startup MaxMessage
+    Creates new instance of Robot using the ::new lambda
+         passed by main(), which causes one of step 2.1 to
+         execute. <i>(The lambda which becomes the Supplier
+         inferface's <i>get() method via Java's Functional Interface
+         rules). (Note "step 2.1" depends on which kind of Robot
+         was created.)
+    Stores a reference to new Robot instance in m_robotCopy.
+    If the code is running on a RoboRio, writes the current library
+        version info into <i>/tmp/frc_versions/FRC_Lib_Version.ini
+    Calls robot.startCompetition(); (See 2.2 )
+        This call doesn't return until the robot stops.
+    If !suppressExitWarning, prints <i>"robot quit unexpectedly"
+    If an exception was caught from robot.startCompetition(),
+        prints <i>"startCompetition() should handle all exeptions"
+end note
+note left of RobotBase::"override close()"
+    close()
+    Does nothing
+end note
+note left of RobotBase::"RuntimeType getRuntimeType()"
+    getRuntimeType()
+    Tells you what type of hardware the code is running on:
+    RuntimeType.kRoboRIO/kRoboRIO2/kSimulation.
+    Via DLL HALUtil.getHALRuntimeType()
+end note
+note left of RobotBase::"long isSimulation()"
+    isSimulation()
+    Is this an simulation on the Visual Studio IDE?
+    Via isReal()
+        Via RuntimeType
+            Via DLL HALUtil.getHALRuntimeType()
+end note
+note left of RobotBase::"long isReal()"
+    isReal()
+    is this running on a RoboRio?
+    Via RuntimeType
+        Via DLL HALUtil.getHALRuntimeType()
+end note
+note left of RobotBase::"boolean isDisabled()"
+    isDisabled()
+    True if robot is disabled or driver station is not attached
+    via DriverStation.isDisabled(); 
+        via DriverStation.isEnabled();
+end note
+note left of RobotBase::"boolean isEnabled()"
+    isEnabled()
+    True if robot is enabled and driver station is attached
+    via DriverStation.isEnabled();
+end note
+note left of RobotBase::"boolean isAutonomous()"
+    isAutonomous()
+    True if robot is in autonomous mode as determined by
+    the field controls.
+    via DriverStation.isAutonomous(); 
+end note
+note left of RobotBase::"boolean isAutonomousEnabled()"
+    isAutonomousEnabled()
+    True if robot is in autonomous mode as determined by
+    the field controls and the robot is also enabled.
+    via DriverStation.isAutonomousEnabled();
+end note
+note left of RobotBase::"boolean isTest()"
+    isTest()
+    True if robot is in test mode.
+    via DriverStation.isTest();
+end note
+note left of RobotBase::"boolean isTeleop()"
+    isTeleop()
+    True, if robot is in teleop mode as determined by
+    the field controls.
+    via DriverStation.isTeleop(); 
+        via DriverStation.isTest(); 
+        via DriverStation.isAutonomous(); 
+end note
+note left of RobotBase::"boolean isTeleopEnabled()"
+    isTeleopEnabled()
+    True, if robot is in teleop mode as determined by
+    the field controls and the robot is also enabled.
+    via DriverStation.isTeleopEnabled()
+end note
+note left of RobotBase::"boolean isNewDataAvailable()"
+    isNewDataAvailable()
+    True if a new control packet is available from the
+    Driver Station since the last check.  (Note:
+    this call updates the current control packet count
+    if there is new data, so you must collect the data
+    if this call returns true or you will lose it.)
+    Teams probably shouldn't call this directly.
+    via DriverStation.isNewControlData();
+end note
+note left of RobotBase::"void startCompetition()"
+    Virtual method implemented either by a WPILib provided
+    derived class (such as TimedRobot) or by the team
+    (if writing completely custom code; see RobotBase Skeleton
+    for an example) and which contains a loop which transfers
+    program control to the correct robot control loop depending
+    on the field control's currently mandeted Op Mode (or the
+    user's selection in Driver Station if there is no field
+    control) and whether the robot is currently disabled.
+end note
+note left of RobotBase::"void endCompetition()"
+    Virtual method implemented either by a WPILib provided
+    derived class (such as TimedRobot) or by the team
+    (if writing completely custom code; see RobotBase Skeleton
+    for an example) and which can be called from anywhere as
+    a signal to the startCompetition() code that the robot must
+    shut down.
+end note
+note left of RobotBase::"boolean getBooleanProperty(String name, boolean defaultValue)"
+    Not currently used anywhere in the library. Retrives a
+    named system property using System.getProperty(...)
+    and returns true if the property value is "true", returns
+    false if the property is "false", returns the passed
+    default if the property doesn't exist, and throws an
+    exception if the property exists but is something other
+    than "true" or "false". Since there aren't any default
+    properties that return these values, the only way this
+    can be used is if a value is set on the java command
+    line using -Dpropertyname=value
+    Reports via DriverStation.reportError();
+end note
+
+RobotBase --|> AutoClosable : Extends
+
+RobotBase --> NetworkTableInstance : RobotBase() -> LiveWindow.status "LW Enabled"=false
+'CameraServerShared
+
+class HAL
+{
+    <b>.java stored inside hal-java-20xx.x.x.jar
+    + DLL native report()
+}
+
+
+' CAMERA SERVER REPORTING
+class CameraServerSharedStore
+{
+    <b>.java stored inside cameraserver-java-20xx.x.x.jar
+    -static CameraServerShared cameraServerShared
+    +CameraServerShared getCameraServerShared()
+    +setCameraServerShared(CameraServerShared shared)
+}
+class cameraServerShared
+{
+    <b>instance with overrides
+    +reportVideoServer(int id) -> HAL.report()
+    +reportUsbCamera(int id) -> HAL.report()
+    +reportAxisCamera(int id) -> HAL.report()
+    +reportDriverStationError(String error) -> HAL.report()
+    +getRobotMainThreadId() -> robotBase.getMainThreadID()
+    +isRoboRIO() -> RobotBase.isReal()
+}
+note right
+    A FIRST remote telementry interface that gathers nationwide
+    device usage statistics for "Robotbuilder reports". See
+    <i>github.com/wpilibsuite/allwpilib/discussions/3768
+    One of the overloaded HAL.report methods is marked 'native',
+    indicating indicates the method runs native code from a .DLL
+    The implementation of the class is in the code that creates
+    the instance. The instance is then stored using
+    CameraServerSharedStore.
+end note
+interface CameraServerShared
+{
+    <b>.java stored inside cameraserver-java-20xx.x.x.jar
+    +reportVideoServer(int id)
+    +reportUsbCamera(int id)
+    +reportAxisCamera(int id)
+    +reportDriverStationError(String error)
+    +getRobotMainThreadId()
+    +isRoboRIO() return FALSE;
+}
+cameraServerShared --> CameraServerSharedStore : constructor calls
+
+
+'MathShared
+class MathSharedStore
+{
+    <b>.java stored inside math-java-20xx.x.x.jar
+    -static MathShared mathShared
+    +MathShared getMathShared()
+    +setMathShared(MathShared shared)
+    +reportError(String error, StackTraceElement[] stackTrace) -> mathShared.reportError()
+    +reportUsage(MathUsage id, int count) -> mathShared.reportUsage()
+}
+class mathShared
+{
+    +reportError(String error, StackTraceElement[] stackTrace) -> DriverStation.reportError()
+    +reportUsage(MathUsage id, int count)->HAL.report()
+}
+note Right
+    A FIRST remote telementry class that gathers nationwide
+    algorithm usage statistics for "Robotbuilder reports".
+    See <i>github.com/wpilibsuite/allwpilib/discussions/3768
+    One of the overloaded HAL.report methods is marked 'native',
+    indicating indicates the method runs native code from a .DLL
+    The implementation of the class is in the code that creates
+    the instance. The instance is then stored using
+    MathSharedStore.
+end note
+mathShared --> MathSharedStore : constructor calls
+interface MathShared
+{
+    <b>.java stored inside math-java-20xx.x.x.jar
+    +reportError(String error, StackTraceElement[] stackTrace)
+    +reportUsage(MathUsage id, int count)
+}
+
+Main --> RobotBase : calls
+RobotBase ..> cameraServerShared : CameraServerShared() «instantiates»
+RobotBase ..> mathShared : MathShared() «instantiates»
+cameraServerShared --|> CameraServerShared : «implements»
+mathShared --|> MathShared : «implements»
+CameraServerSharedStore --o cameraServerShared : stores
+MathSharedStore --o mathShared : stores
+cameraServerShared --> HAL : calls
+mathShared --> HAL : calls
+cameraServerShared --> RobotBase : calls
+
+
+
+'  IterativeRobotBase
+
+abstract class IterativeRobotBase {
+    -enum Mode {kNone, kDisabled, kAutonomous, kTeleop, kTest}
+    -{static} DSControlWord m_word = new DSControlWord();
+    -Mode m_lastMode = Mode.kNone;
+    -{static} double m_period;
+    -{static} Watchdog m_watchdog;
+    -boolean m_ntFlushEnabled;
+    #IterativeRobotBase(double period)
+    +{abstract} @overide void startCompetition()
+
+    +void robotInit()
+    +void simulationInit()
+    +void disabledInit()
+    +void autonomousInit()
+    +void teleopInit()
+    +void testInit()
+
+    +void robotPeriodic()
+    +void simulationPeriodic()
+    +void disabledPeriodic()
+    +void autonomousPeriodic()
+    +void teleopPeriodic()
+    +void testPeriodic()
+
+    +void disabledExit()
+    +void autonomousExit()
+    +void teleopExit()
+    +void testExit()
+    
+    +void setNetworkTablesFlushEnabled(boolean enabled)
+    +void getPeriod()
+
+    #void loopFunc()
+
+    -void printLoopOverrunMessage()
+}
+note Bottom of IterativeRobotBase
+    Derived from RobotBase, this WPILib provided class adds
+    "loopFunc()", which provides the necessary logic to call
+    the initilization, loop, and exit methods for each opmode
+    depending on the changes to and current opmode selected
+    by the user or field software.  <i><b>This class does not provide
+    <i><b>a startCompetition() implementation, so loopFunc() is not
+    <i><b>called due to any logic in this class.</b></i>  The functionality
+    is merely made available.  (A watchdog is also started,
+    however, and that watchdog will fire and print a message
+    if the watchdog is not cleared by loopFunc().)
+end note
+IterativeRobotBase --|> RobotBase : Extends
+
+class Watchdog
+{
+}
+note right of IterativeRobotBase::"IterativeRobotBase(double period)"
+    <size:60>2.1
+    Sets m_period with the timeslice <i>period</i> passed in
+    Creates a new watchdog timer that times out after <i>period</i>
+        and prints a "loop overun" message to indicate that loop
+        code execution time exceeded the time slice period.
+end note
+note left of IterativeRobotBase::"@overide void startCompetition()"
+    Virtual method implemented either by a WPILib provided
+    derived class (such as TimedRobot) or by the team
+    (if writing completely custom code; see RobotBase Skeleton
+    for an example) and which contains a loop which transfers
+    program control to the correct robot control loop depending
+    on the field control's currently mandeted Op Mode (or the
+    user's selection in Driver Station if there is no field
+    control) and whether the robot is currently disabled.
+end note
+note left of IterativeRobotBase::"void robotInit()"
+    Users override this method for default Robot-wide initialization
+    which will be called when the robot is first powered on. It will
+    be called exactly one time.  <b>Warning: the Driver Station
+    <b>"Robot Code" light and FMS "Robot Ready" indicators
+    <b>will be off until RobotInit() exits. Code in RobotInit()
+    <b>that waits for enable will cause the robot to never
+    <b>indicate that the code is ready, causing the robot to be
+    <b>bypassed in a match.
+end note
+note left of IterativeRobotBase::"void simulationInit()"
+    Users override this method for default Robot-wide simulation
+    related initialization which will be called when the robot
+    is first started exactly one time after RobotInit is called
+    only when the robot is in simulation.
+end note
+note right of IterativeRobotBase::"void disabledInit()"
+    Override this method to provide initialization code which
+    will be called each time the robot enters disabled mode.
+end note
+note right of IterativeRobotBase::"void autonomousInit()"
+    ...same as above, but for entering autonomous
+end note
+note right of IterativeRobotBase::"void teleopInit()"
+    ...same as above, but for entering teleop
+end note
+note right of IterativeRobotBase::"void testInit()"
+    ...same as above, but for entering test
+end note
+note left of IterativeRobotBase::"void robotPeriodic()"
+    Users override this method to provide the main robot loop.
+    The main robot is called after the Op Mode periodic is called,
+    and called regardless of the OpMode.
+    (That is, first disabledPeriodic/autonomousPeriodic/etc
+    is called, then robotPeriodic is called.)
+end note
+note left of IterativeRobotBase::"void simulationPeriodic()"
+    Override this to provide code that runs after each run of
+    the main roobot loop ( robotPeriodic() ).  It is always
+    called in simlations regardless of the active op mode.
+end note
+note left of IterativeRobotBase::"void disabledPeriodic()"
+    Override to provide a loop that runs while in periodic mode.
+end note
+note left of IterativeRobotBase::"void autonomousPeriodic()"
+    ...same as above, but for autonomous mode.
+end note
+note left of IterativeRobotBase::"void teleopPeriodic()"
+    ...same as above, but for teleop mode.
+end note
+note left of IterativeRobotBase::"void testPeriodic()"
+    ...same as above, but for test mode.
+end note
+note right of IterativeRobotBase::"void disabledExit()"
+    Override to clean up when exiting disabled mode.
+end note
+note right of IterativeRobotBase::"void autonomousExit()"
+    ...same as above, but for autonomous mode.
+end note
+note right of IterativeRobotBase::"void teleopExit()"
+    ...same as above, but for teleop mode.
+end note
+note right of IterativeRobotBase::"void testExit()"
+    ...same as above, but for test mode.
+end note
+note left of IterativeRobotBase::"setNetworkTablesFlushEnabled(boolean enabled)"
+    Enables (or disables, which is the default) the flusing of the
+    network tables (telemetry data) every loop iteration.
+end note
+note left of IterativeRobotBase::"void getPeriod()"
+    Returns the period of each time slice (that was set during
+    object construction.)
+end note
+note right of IterativeRobotBase::"void loopFunc()"
+    Reset (and I think enable) the watchdog timer
+    Asks the driver station to update the control m_word
+        (contains OpMode, e-stop, other status info)
+        via DSControlWord.update
+        via DriverStation.updateControlWordFromCache
+        via DriverStation.updateControlWord
+        via HAL.getControlWord
+        via ControlWord.update
+    Determines the current mode based on m_word
+    If the mode changed
+        Call the apropriate op exit routine
+            If the exited mode was test, disable the LiveWindow
+            and disable the dashbord actuator widgets as a visual
+            cue to the user that they no longer work.
+            via LiveWindow.setEnabled
+            via Shuffleboard.disableActuatorWidgets
+        Call the appropriate op initialization routine
+            If the entered mode is test, enable the LiveWindow
+            and enable the dashboard actuator widgets so the user
+            can manipulate the robot.
+            via LiveWindow.setEnabled
+            via Shuffleboard.disableActuatorWidgets
+        Add an "epoch marker" to the watchdog
+    Remember this mode as the new last mode
+    Call the correct periodic code for Disabled/Autonomous/Teleop/Test
+    Call robotPeriodic  (Note robotPeriodic is always called!)
+    Add an "epoch marker" to the watchdog
+        via Watchddog.addEpoch
+        via Tracer.addEpoch
+    Disable the watchdog
+        (huh?  I dont get this unless reset enables.)
+    Flush the network tables, if that feature is turned on
+    If watchdog expired, print "epochs makers" for the period
+    
+
+    
+end note
+
+note left of IterativeRobotBase::"void printLoopOverrunMessage()"
+    Prints the loop overrun message
+end note
+
+IterativeRobotBase --* Watchdog : constructor «instantiates»\ntimeout = loop period\naction = print loop overrun message
+
+
+'  TimedRobot
+class Callback
+{
+    +Runnable func;
+    +double period;
+    +double expirationTime;
+}
+note Bottom of Callback
+    Maintains a priority sorted list of callbacks
+    (not documented here, just shown)
+end note
+
+class TimedRobot
+{
+    +{static} kDefaultPeriod = 0.02
+    -int m_notifier
+    -double m_startTime
+    -PriorityQueue<Callback> m_callbacks
+    TimedRobot()
+    -@override void finalize()
+    +@override void startCompetition()
+    +@override void endCompetition()
+    +void addPeriodic(Runnable callback, double periodSeconds)
+    +void addPeriodic(Runnable callback, double periodSeconds, double offsetSeconds)
+}  
+note Bottom of TimedRobot
+    Derived from IterativeRobotBase, this WPILib provided class
+    adds a callback system which repeats added callbacks every
+    system period, possibly offset by some specific time.
+    The class also adds IterativeRobotBase's loopFunc() OpMode
+    handling loop which executes every 20ms by default (but which)
+    can be overriden by the user using super(period in seconds)
+    in Robot's constructor.)  You can use this Robot object directly
+    if you wish; alternatively, you can use the command robot.
+end note
+
+note left of TimedRobot::"int m_notifier"
+    A handle to the DLL-provided hardware-based notifier function.
+end note
+note left of TimedRobot::"double m_startTime"
+    The timestamp TimedRobot's contruction
+end note
+note left of TimedRobot::"PriorityQueue<Callback> m_callbacks"
+    A java priority queue of callbacks.  Lowest valued entries
+    have the highest priority.
+end note
+
+
+note right of TimedRobot::"TimedRobot()"
+    <size:60>2.1
+    Calls IterativeRobotBase's constructor with the default
+        timeslice period.
+        via super(period)
+        The user can override with super(period in seconds)
+    Sets the start time to the current time
+        via Timer.getFPGATimestamp()
+        via RobotController.getFPGATime()
+        via DLL HALUtil.getFPGATime()
+    Sets up a call to loopFunc every <i>period</i> seconds
+        via TimedRobot.addPeriodic()
+        via PrioityQueue<Callback> m_callbacks.add()
+    Sets the DLL hardware-based notifier's name to "TimedRobot"
+    Reports usage of the TimedRobot class to FIRST Robotics
+        via HAL.report
+end note
+    
+note left of TimedRobot::"@override void finalize()"
+    An override of Java's Garbage Collection finalize method,
+    called when the garbage collector decides the object is no
+    longer accessable in the code.  Shuts down the DLL-provided
+    hardware notifier function.
+end note
+
+note right of TimedRobot::"@override void startCompetition()"
+    The library provided startCompeition loop, responsible for
+    determining the current opMode and acting accordingly.
+    Calls IterativeRobotBase.robotInit(), likely overriden in Robot
+    If the execution is simulated (not on a robotrio), calls
+        IterativeRobotBase.simulationInit(), possibly overriden by
+        Robot
+    Prints startup message
+    Signals program starting to field software
+        via dll HAL.observeUserProgramStarting
+    Infinite loop:
+        Gets the next callback's requested callback time
+            via PrioityQueue<Callback> m_callbacks.poll()
+        Set the DLL hardware-based notifier's alarm for the next
+        callback time If there is nothing to do, go back to the top
+            of the loop
+        Execute the callback
+        Increment the callback's alarm time by the callback period
+        Add the callback back to the priority queue
+        While the next callback time has already passed
+            Pull the callback out of the priority queue
+            Execute the callback
+            Increment the callback's alarm time by the callback
+                period
+            Add the callback back to the priority queue
+end note
+
+note right of TimedRobot::"override void endCompetition()"
+    Shuts down the DLL hardware based notifier
+end note
+
+note left of TimedRobot::"void addPeriodic(Runnable callback, double periodSeconds)"
+    Will call <i>callback</i> every <i>periodSeconds</i> seconds.
+end note
+
+note left of TimedRobot::"void addPeriodic(Runnable callback, double periodSeconds, double offsetSeconds)"
+    Will call <i>callback</i> every <i>periodSeconds</i> seconds,
+    but offset by offsetSeconds from when the global period begins.
+end note
+
+TimedRobot --* Callback 
+
+TimedRobot --|> IterativeRobotBase : Extends
+
+class Robot
+{
+    -Command m_autonomousCommand
+    -RobotContainer m_robotContainer
+    +@override void robotInit()
+    +@override void robotPeriodic()
+    +@override void disabledInit()
+    +@override void disabledPeriodic()
+    +@override void autonomousInit()
+    +@override void autonomousPeriodic()
+    +@override void teleopInit()
+    +@override void teleopPeriodic()
+    +@override void testInit()
+    +@override void testPeriodic()
+}
+
+note Bottom of Robot
+    Your robot code goes here.  There are two templates, one for
+    a timed robot; the other for a command robot.  This diagram
+    shows the behavior of the command robot template, which is
+    the more complicated of the two.
+end note
+
+note left of Robot::"override void robotInit()"
+    Called once when the robot starts up by the
+    startCompetition() implementation of TimedRobot.
+end note
+
+note left of Robot::"@override void robotPeriodic()"
+    Runs the CommandScheduler
+        via CommandScheduler.getInstance().run()
+end note
+
+note left of Robot::"@override void disabledInit()"
+    Place the code you want run when the robot enters
+    disabled mode here. (Normally you would schedule
+    a command here if you wish to do something.)
+end note
+
+note left of Robot::"@override void disabledPeriodic()"
+    Place the loop code you want run here while the
+    robot is disabled. (Normally you do nothing.)
+    (robotPeriodic will be called after.)
+end note
+
+note left of Robot::"@override void autonomousInit()"
+    Retrieve the autonomous command the user stored in the
+        RobotContainer object, if anny.
+    If there was a command there, schedule it.
+end note
+
+note left of Robot::"@override void autonomousPeriodic()"
+    Place the loop code you want run here while the
+    robot is in autonomous. (Normally you do nothing.)
+    (robotPeriodic will be called after.)
+end note
+
+note left of Robot::"@override void teleopInit()"
+    If the user added an autonomous command, cancel it.
+    (If you wanted to schedule a command here, you
+    could.)
+end note
+
+note left of Robot::"@override void teleopPeriodic()"
+    Place the loop code you want run here while the
+    robot is in teleop mode. (Normally you do nothing.)
+    (robotPeriodic will be called after.)
+end note
+
+note left of Robot::"@override void testInit()"
+    Place the code you want run when the robot enters
+    test mode here.  (Motion not permitted.)
+end note
+
+note left of Robot::"@override void testPeriodic()"
+    Place the loop code you want run here while the
+    robot is in test mode.  (Normally you do nothing.)
+    (robotPeriodic will be called after.)
+end note
+
+
+
+Robot --|> TimedRobot : Extends
+
+Robot --* RobotContainer 
+
+class RobotContainer
+{
+    -{static} ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem()
+    -{static} ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem)
+    +RobotContainer()
+    +void configureButtonBindings()
+    +void getAutonomousCommand()
+}
+note bottom of RobotContainer
+    This class holds all of the subsystems for the robot.
+    Subsystems do the low-level control of the hardware given
+    a specific command, but make no decisions on their own.
+end note
+
+note left of RobotContainer::RobotContainer()
+    calls RobotContainer.configureButtonBindings()
+end note
+
+note left of RobotContainer::configureButtonBindings()
+    Place your button bindings here
+end note
+
+note left of RobotContainer::getAutonomousCommand()
+    The tempalte returns m_autoCommand, the example command
+    declared in the template.  Return the command you wish
+    run during autonomous mode.
+end note
+
+class SubsystemBase
+class ExampleSubsystem
+
+RobotContainer --* ExampleSubsystem
+RobotContainer --* ExampleCommand
+
+ExampleSubsystem--|> SubsystemBase : Extends
+ExampleCommand --|> CommandBase : Extends
+' CLASSES:
+'   class x
+'   abstract class x
+
+' CLASS MEMBERS:
+'   -	private
+'   #	protected
+'   ~	package private
+'   +	public
+'   xxx() a function
+'   xxx a field
+
+' RELATONSHIPS:
+'   Extension	<|--	
+'   Composition	*--	
+'   Aggregation	o--	
+'   #--
+'   x--
+'   }--
+'   +--
+'   ^--
+'   -- straight line
+'   .. dashed line
+'   "x" --> "x" :label cardinality and label
+
+
+
+
+'abstract        abstract
+'annotation      annotation
+'circle          circle
+'()              circle_short_form
+'class           class
+'diamond         diamond
+'<>              diamond_short_form
+'entity          entity
+'enum            enum
+'interface       interface
+'protocol        protocol
+'struct          struct
+@enduml
